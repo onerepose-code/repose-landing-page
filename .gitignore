@@ -30,7 +30,8 @@ db.sqlite3
 db.sqlite3-journal
 media/
 
-# =========================
+# =========================git push -u origin main
+
 
 # Static files (collected)
 
