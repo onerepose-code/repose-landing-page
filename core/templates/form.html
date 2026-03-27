@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@300;400&display=swap');
+
+  :root {
+    --black: #0a0a0a;
+    --white: #fafafa;
+    --grey-light: #e8e8e8;
+    --grey-mid: #aaa;
+    --error: #c0392b;
+    --transition: 180ms ease;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--white);
+    color: var(--black);
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Page layout ─────────────────────────────── */
+  .signup-page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .signup-aside {
+    border-right: 1px solid var(--black);
+    padding: 60px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .signup-aside .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--grey-mid);
+  }
+
+  .signup-aside h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .signup-aside .aside-footer {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey-mid);
+  }
+
+  .signup-main {
+    padding: 60px 48px 80px;
+    overflow-y: auto;
+  }
+
+  /* ── Form structure ───────────────────────────── */
+  .signup-form {
+    max-width: 480px;
+  }
+
+  .form-section {
+    border-top: 1px solid var(--black);
+    padding: 28px 0 4px;
+  }
+
+  .form-section:last-of-type {
+    border-bottom: 1px solid var(--black);
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+  }
+
+  /* ── Labels ───────────────────────────────────── */
+  .field-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--grey-mid);
+    margin-bottom: 10px;
+  }
+
+  .field-row {
+    margin-bottom: 28px;
+  }
+
+  /* ── Text inputs ──────────────────────────────── */
+  input[type="text"],
+  input[type="email"] {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--black);
+    padding: 8px 0 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--black);
+    outline: none;
+    transition: border-bottom-width var(--transition);
+    border-radius: 0;
+    -webkit-appearance: none;
+  }
+
+  input[type="text"]::placeholder,
+  input[type="email"]::placeholder {
+    color: var(--grey-mid);
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus {
+    border-bottom: 2px solid var(--black);
+  }
+
+  /* ── Fieldset / radio groups ──────────────────── */
+  fieldset {
+    border: none;
+    padding: 0;
+    margin-bottom: 28px;
+  }
+
+  fieldset legend {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--grey-mid);
+    margin-bottom: 14px;
+    display: block;
+    width: 100%;
+  }
+
+  .radio-option {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--grey-light);
+  }
+
+  .radio-option:first-of-type {
+    border-top: none;
+  }
+
+  /* Custom radio */
+  input[type="radio"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--black);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    transition: background var(--transition);
+  }
+
+  input[type="radio"]:checked {
+    background: var(--black);
+    box-shadow: inset 0 0 0 3px var(--white);
+  }
+
+  .radio-option > label {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  /* ── Nested reveal panels ─────────────────────── */
+  .reveal-panel {
+    display: none;
+    width: 100%;
+    flex-basis: 100%;
+    margin-top: 12px;
+    padding: 14px 0 4px 26px;
+    border-left: 1px solid var(--black);
+    animation: slideDown 200ms ease forwards;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Error messages ───────────────────────────── */
+  .field-error {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--error);
+    margin-top: 6px;
+  }
+
+  /* ── Submit button ────────────────────────────── */
+  .submit-btn {
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    padding: 14px 40px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity var(--transition);
+  }
+
+  .submit-btn:hover  { opacity: 0.65; }
+  .submit-btn:active { opacity: 0.4; }
+
+  /* ── Responsive ───────────────────────────────── */
+  @media (max-width: 720px) {
+    .signup-page { grid-template-columns: 1fr; }
+    .signup-aside {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--black);
+      padding: 40px 24px;
+    }
+    .signup-aside h1 { font-size: 2.4rem; margin: 16px 0; }
+    .signup-aside .aside-footer { display: none; }
+    .signup-main { padding: 40px 24px 60px; }
+  }
+</style>
+
+<div class="signup-page">
+
+  <!-- Left panel -->
+  <aside class="signup-aside">
+    <span class="eyebrow">Community / Register</span>
+    <h1>Join the&nbsp;circle.</h1>
+    <span class="aside-footer">Emerging artists &amp; those who find them.</span>
+  </aside>
+
+  <!-- Right panel -->
+  <main class="signup-main">
+    <form method="post" class="signup-form" novalidate>
+      {% csrf_token %}
+
+      <div class="form-section">
+
+        <div class="field-row">
+          <label class="field-label" for="id_name">Name</label>
+          {{ form.name }}
+          {% if form.name.errors %}
+            <span class="field-error">{{ form.name.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <div class="field-row">
+          <label class="field-label" for="id_email">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <span class="field-error">{{ form.email.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <div class="field-row">
+          <label class="field-label" for="id_country">Country</label>
+          {{ form.country }}
+          {% if form.country.errors %}
+            <span class="field-error">{{ form.country.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <div class="form-section">
+
+        <!-- Gender -->
+        <fieldset>
+          <legend>Gender</legend>
+          {% for radio in form.gender %}
+            <div class="radio-option">
+              {{ radio.tag }}
+              <label for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+              {% if radio.data.value == "other" %}
+                <div id="gender-other-wrapper" class="reveal-panel">
+                  <label class="field-label">Please specify</label>
+                  {{ form.gender_other }}
+                  {% if form.gender_other.errors %}
+                    <span class="field-error">{{ form.gender_other.errors.0 }}</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          {% if form.gender.errors %}
+            <span class="field-error">{{ form.gender.errors.0 }}</span>
+          {% endif %}
+        </fieldset>
+
+        <!-- Emerging artists -->
+        <fieldset>
+          <legend>Do you know any emerging artists?</legend>
+          {% for radio in form.knows_emerging_artist %}
+            <div class="radio-option">
+              {{ radio.tag }}
+              <label for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+              {% if radio.data.value == "yes" %}
+                <div id="artist-details-wrapper" class="reveal-panel">
+                  <label class="field-label">Artist name / link</label>
+                  {{ form.artist_details }}
+                  {% if form.artist_details.errors %}
+                    <span class="field-error">{{ form.artist_details.errors.0 }}</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          {% if form.knows_emerging_artist.errors %}
+            <span class="field-error">{{ form.knows_emerging_artist.errors.0 }}</span>
+          {% endif %}
+        </fieldset>
+
+        <!-- Discover art -->
+        <fieldset>
+          <legend>How do you discover art?</legend>
+          {% for radio in form.discover_art %}
+            <div class="radio-option">
+              {{ radio.tag }}
+              <label for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+              {% if radio.data.value == "other" %}
+                <div id="discover-art-other-wrapper" class="reveal-panel">
+                  <label class="field-label">Please specify</label>
+                  {{ form.discover_art_other }}
+                  {% if form.discover_art_other.errors %}
+                    <span class="field-error">{{ form.discover_art_other.errors.0 }}</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          {% if form.discover_art.errors %}
+            <span class="field-error">{{ form.discover_art.errors.0 }}</span>
+          {% endif %}
+        </fieldset>
+
+      </div>
+
+      <button type="submit" class="submit-btn">Submit</button>
+
+    </form>
+  </main>
+
+</div>
+
+<script>
+  function bindRadioReveal(radioName, triggerValue, wrapperId) {
+    const radios  = document.querySelectorAll(`input[name="${radioName}"]`);
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) return;
+
+    function update() {
+      const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+      const show = checked && checked.value === triggerValue;
+      wrapper.style.display = show ? 'block' : 'none';
+      if (!show) {
+        const input = wrapper.querySelector('input[type="text"]');
+        if (input) input.value = '';
+      }
+    }
+
+    radios.forEach(r => r.addEventListener('change', update));
+    update();
+  }
+
+  bindRadioReveal('gender',                'other', 'gender-other-wrapper');
+  bindRadioReveal('knows_emerging_artist', 'yes',   'artist-details-wrapper');
+  bindRadioReveal('discover_art',          'other', 'discover-art-other-wrapper');
+</script>
+
+{% endblock %}
